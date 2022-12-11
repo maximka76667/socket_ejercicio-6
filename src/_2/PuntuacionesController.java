@@ -53,6 +53,10 @@ public class PuntuacionesController {
 			CallableStatement callablaStatement = (CallableStatement) connectionDatabase
 					.prepareCall("SELECT * FROM puntacion");
 			ResultSet resultSet = callablaStatement.executeQuery();
+
+			while (resultSet.next()) {
+
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
