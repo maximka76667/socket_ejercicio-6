@@ -2,3 +2,4 @@
 17500 María Suarez
 13000 Juan García
 15000 Maxim
+10000 Pablo 
