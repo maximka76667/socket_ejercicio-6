@@ -28,14 +28,17 @@ public class Client {
 				for (String string : puntuaciones) {
 					System.out.println(string);
 				}
-				return;
+			} else {
+				System.out.println(dataInputStream.readUTF());
 			}
 
-			System.out.println(dataInputStream.readUTF());
+			clientSocket.close();
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+		scanner.close();
 	}
 
 	public static void main(String[] args) {

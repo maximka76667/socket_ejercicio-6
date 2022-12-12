@@ -1,14 +1,14 @@
 package _2;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Properties;
-
-import com.mysql.jdbc.CallableStatement;
 
 public class PuntuacionesController {
 
@@ -16,8 +16,9 @@ public class PuntuacionesController {
 	private Connection connectionDatabase;
 
 	public PuntuacionesController() {
-		this.puntuaciones = getPuntuaciones();
 		connect();
+		this.puntuaciones = new ArrayList<String>();
+		fetchPuntuaciones();
 	}
 
 	public void connect() {
@@ -25,7 +26,6 @@ public class PuntuacionesController {
 			Properties props = new Properties();
 			props.put("user", "root");
 			props.put("password", "root");
-//			props.put("useSSL", true);
 
 			Connection connection = DriverManager.getConnection("jdbc:mysql://localhost", props);
 			Statement statement = connection.createStatement();
@@ -35,8 +35,7 @@ public class PuntuacionesController {
 
 			this.connectionDatabase = DriverManager.getConnection("jdbc:mysql://localhost/puntuaciones", props);
 
-			Statement databaseStatement = connectionDatabase.createStatement();
-			databaseStatement.execute("DROP TABLE IF EXISTS `puntuacion`;");
+			Statement databaseStatement = this.connectionDatabase.createStatement();
 			databaseStatement.execute("CREATE TABLE IF NOT EXISTS puntuacion (" + "puntos int(10) NOT NULL,"
 					+ "nombre varchar(70) NOT NULL," + "PRIMARY KEY (nombre)"
 					+ ") ENGINE=InnoDB DEFAULT CHARSET=utf8;");
@@ -46,30 +45,53 @@ public class PuntuacionesController {
 		}
 	}
 
-	public ArrayList<String> getPuntuaciones() {
-		ArrayList<String> puntuaciones = new ArrayList<String>();
+	public void fetchPuntuaciones() {
+		this.puntuaciones = new ArrayList<String>();
 
 		try {
-			CallableStatement callablaStatement = (CallableStatement) connectionDatabase
-					.prepareCall("SELECT * FROM puntacion");
+			CallableStatement callablaStatement = this.connectionDatabase.prepareCall("SELECT * FROM puntuacion");
 			ResultSet resultSet = callablaStatement.executeQuery();
 
 			while (resultSet.next()) {
+				String rowData = "";
+				for (int i = 1; i <= 2; i++) {
+					rowData += resultSet.getString(i) + " ";
+				}
 
+				puntuaciones.add(rowData);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 
-		return puntuaciones;
 	}
 
 	public void addPuntuacion(String newPuntuacion) {
 		puntuaciones.add(newPuntuacion);
-		writePuntuaciones();
+		insertPuntuacion(newPuntuacion);
 	}
 
-	public void writePuntuaciones() {
+	public void insertPuntuacion(String newPuntuacion) {
+		try {
+			PreparedStatement ps = this.connectionDatabase.prepareStatement("INSERT INTO puntuacion VALUES(?, ?)");
 
+			int indexOfSpace = newPuntuacion.indexOf(" ");
+
+			int puntos = Integer.parseInt(newPuntuacion.substring(0, indexOfSpace));
+			String nombre = newPuntuacion.substring(indexOfSpace + 1);
+
+			ps.setInt(1, puntos);
+			ps.setString(2, nombre);
+
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public ArrayList<String> getPuntuaciones() {
+		fetchPuntuaciones();
+		return this.puntuaciones;
 	}
 }
